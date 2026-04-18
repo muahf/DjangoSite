@@ -1,0 +1,203 @@
+{% extends 'resident/base.html' %}
+
+{% block title %}🧬 ПАТОГЕНЫ{% endblock %}
+
+{% block content %}
+
+{% if mode == "list" %}
+    <h1>Все патогены</h1>
+
+    <div class="btn-group">
+        <a href="{% url 'resident:pathogen_create' %}" class="btn btn-primary">
+            + Добавить патоген
+        </a>
+    </div>
+
+    <div class="books-grid">
+        {% for pathogen in pathogens %}
+            <div class="book-card">
+
+                <div class="book-title">{{ pathogen.title }}</div>
+
+                {% if pathogen.image %}
+                    <div class="image-container">
+                        <img src="{{ pathogen.image.url }}" alt="{{ pathogen.title }}">
+                    </div>
+                {% endif %}
+
+                <div class="book-author">
+                    от
+                    <a href="{% url 'resident:researcher_detail' pathogen.author.pk %}">
+                        {{ pathogen.author.name }}
+                    </a>
+                </div>
+
+                <div class="book-details">
+                    {{ pathogen.description|truncatechars:100 }}
+                </div>
+
+                <span class="{% if pathogen.is_available %}status-safe{% else %}status-danger{% endif %}">
+                    {% if pathogen.is_available %}БЕЗОПАСЕН{% else %}ОПАСЕН{% endif %}
+                </span>
+
+                <div class="btn-group">
+                    <a href="{% url 'resident:pathogen_detail' pathogen.pk %}" class="btn btn-secondary">
+                        Подробнее
+                    </a>
+                    <a href="{% url 'resident:pathogen_update' pathogen.pk %}" class="btn btn-success">
+                        Редактировать
+                    </a>
+                    <a href="{% url 'resident:pathogen_delete' pathogen.pk %}" class="btn btn-danger">
+                        Удалить
+                    </a>
+                </div>
+
+            </div>
+        {% empty %}
+            <div class="empty-state">Патогены отсутствуют.</div>
+        {% endfor %}
+    </div>
+
+{% elif mode == "detail" %}
+
+    <div class="detail-card">
+
+        <div class="detail-header">
+            <h1>{{ pathogen.title }}</h1>
+
+            {% if pathogen.is_available %}
+                <span class="status-safe">БЕЗОПАСЕН</span>
+            {% else %}
+                <span class="status-danger">ОПАСЕН</span>
+            {% endif %}
+        </div>
+
+        <div class="detail-grid">
+
+            <div class="detail-item">
+                <span class="label">Семейство</span>
+                <span class="value">{{ pathogen.family|default:"—" }}</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="label">Происхождение</span>
+                <span class="value">{{ pathogen.origin|default:"—" }}</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="label">Обнаружен</span>
+                <span class="value">{{ pathogen.discovered|default:"—" }}</span>
+            </div>
+
+            <div class="detail-item">
+                <span class="label">Создатель</span>
+                <span class="value">
+                    {% if pathogen.creator %}
+                        <a href="{% url 'resident:researcher_detail' pathogen.creator.pk %}">
+                            {{ pathogen.creator.name }}
+                        </a>
+                    {% else %}
+                        —
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="detail-item">
+                <span class="label">Исследователь</span>
+                <span class="value">
+                    <a href="{% url 'resident:researcher_detail' pathogen.author.pk %}">
+                        {{ pathogen.author.name }}
+                    </a>
+                </span>
+            </div>
+
+            <div class="detail-item">
+                <span class="label">Применение</span>
+                <span class="value">{{ pathogen.application|default:"—" }}</span>
+            </div>
+
+            <div class="detail-item">
+    <span class="label">Передача</span>
+    <span class="value">
+        {% if pathogen.transmission %}
+          {% for item in pathogen.get_transmission_display_list %}
+    <span class="badge">{{ item }}</span>
+{% endfor %}
+        {% else %}
+            —
+        {% endif %}
+    </span>
+</div>
+
+            <div class="detail-item">
+                <span class="label">Создан</span>
+                <span class="value">{{ pathogen.created_at|date:"F j, Y, H:i" }}</span>
+            </div>
+
+        </div>
+
+        <div class="detail-description">
+            {{ pathogen.description }}
+        </div>
+
+        <div class="btn-group">
+            <a href="{% url 'resident:pathogen_update' pathogen.pk %}" class="btn btn-success">
+                Редактировать
+            </a>
+            <a href="{% url 'resident:pathogen_delete' pathogen.pk %}" class="btn btn-danger">
+                Удалить
+            </a>
+            <a href="{% url 'resident:pathogen' %}" class="btn btn-secondary">
+                Назад
+            </a>
+        </div>
+
+    </div>
+
+{% elif mode == "form" %}
+
+    <div class="form-card">
+
+        <div class="form-header">
+            <h3>{% if pathogen %}Редактировать патоген{% else %}Добавить патоген{% endif %}</h3>
+        </div>
+
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="form-group">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+
+                    {% if field.errors %}
+                        <div class="form-errors">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            <a href="{% url 'resident:pathogen' %}" class="btn btn-secondary">Отмена</a>
+        </form>
+
+    </div>
+
+{% elif mode == "delete" %}
+
+    <div class="detail-card">
+        <h2>Удаление патогена</h2>
+
+        <p>Вы уверены, что хотите удалить <strong>{{ pathogen.title }}</strong>?</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Подтвердить</button>
+            <a href="{% url 'resident:pathogen_detail' pathogen.pk %}" class="btn btn-secondary">
+                Отмена
+            </a>
+        </form>
+    </div>
+
+{% endif %}
+
+{% endblock %}

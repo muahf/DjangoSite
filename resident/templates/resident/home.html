@@ -1,0 +1,222 @@
+{% extends 'resident/base.html' %}
+
+{% block title %}🏠 Главная{% endblock %}
+
+{% block content %}
+
+<h1>Добро пожаловать в портал исследований патогенов</h1>
+
+<!-- DASHBOARD -->
+<div class="home-grid">
+
+    <div class="stat-card small-card">
+        <div class="stat-icon">🦠</div>
+        <div class="stat-value">{{ total_pathogens }}</div>
+        <div class="stat-label">Всего патогенов</div>
+
+        <p>Безопасные: {{ available_pathogens }}</p>
+        <progress value="{{ available_pathogens }}" max="{{ total_pathogens }}"></progress>
+
+        
+    </div>
+
+    <div class="stat-card small-card">
+        <div class="stat-icon">👨‍🔬</div>
+        <div class="stat-value">{{ total_researchers }}</div>
+        <div class="stat-label">Исследователи</div>
+
+    </div>
+
+</div>
+
+
+<!-- TOP GRID -->
+<div class="home-grid">
+
+    <!-- LEFT: LAST PATHOGENS -->
+    <div>
+        <h2>Последние патогены</h2>
+
+        <div class="list-container small-list">
+            {% for pathogen in recent_pathogens %}
+                <div class="list-item">
+                    <a href="{% url 'resident:pathogen_detail' pathogen.pk %}" class="list-link">
+                        <span class="list-title">{{ pathogen.title }}</span>
+                        <span class="list-meta big-author">
+                            {{ pathogen.author.name }}
+                        </span>
+                    </a>
+                </div>
+            {% empty %}
+                <div class="empty-state">Патогены отсутствуют</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- RIGHT: SLIDER -->
+    <div>
+    <h2>🧬 Вирусная коллекция</h2>
+<div class="virus-viewer" id="virusViewerWrapper">
+
+    <button class="viewer-btn" onclick="changeVirus(-1)">‹</button>
+
+    <div class="viewer-content">
+        <img id="viewerImg" src="" alt="">
+        <div id="viewerTitle"></div>
+    </div>
+
+    <button class="viewer-btn" onclick="changeVirus(1)">›</button>
+
+</div>
+
+<!-- данные -->
+<div id="virusData" style="display:none;">
+    {% for pathogen in recent_pathogens %}
+        {% if pathogen.image %}
+            <div class="virus-item"
+                 data-title="{{ pathogen.title }}"
+                 data-img="{{ pathogen.image.url }}">
+            </div>
+        {% endif %}
+    {% endfor %}
+</div>
+</div>
+</div>
+
+
+<!-- LAB BELOW -->
+<div class="lab-section">
+    <h2>🧪 Umbrella Virus Fusion Lab</h2>
+
+    <div class="virus-lab">
+        <div class="lab-panel">
+           <div class="virus-selectors"> 
+            <div class="virus-box"> 
+                <select id="virus1" onchange="updatePreview(1)"> 
+                    {% for pathogen in recent_pathogens %} 
+                    <option value="{{ pathogen.title }}" data-img="{% if pathogen.image %}{{ pathogen.image.url }}{% endif %}"> 
+                        {{ pathogen.title }} 
+                    </option> 
+                    {% endfor %} 
+                </select>
+                 <img id="img1" class="virus-preview"> 
+                </div> 
+                <div class="virus-box"> 
+                    <select id="virus2" onchange="updatePreview(2)"> 
+                        {% for pathogen in recent_pathogens %} 
+                        <option value="{{ pathogen.title }}" data-img="{% if pathogen.image %}{{ pathogen.image.url }}{% endif %}"> {{ pathogen.title }} 
+
+                        </option> 
+                        {% endfor %} 
+                    </select> 
+                    <img id="img2" class="virus-preview"> 
+                </div> </div> <div class="lab-controls"> 
+                    <button onclick="mixViruses()" class="btn btn-danger"> 
+                        ☣ INITIATE FUSION 
+                    </button> 
+                </div>
+
+            <div id="result" class="lab-result"></div>
+        </div>
+    </div>
+</div>
+<script>
+let viruses = [];
+let index = 0;
+
+/* =========================
+   LAB PREVIEW
+========================= */
+function updatePreview(num) {
+    let select = document.getElementById("virus" + num);
+    let img = document.getElementById("img" + num);
+
+    if (!select || !img) return;
+
+    let selected = select.options[select.selectedIndex];
+    let imgUrl = selected?.getAttribute("data-img");
+
+    if (imgUrl && imgUrl.trim() !== "") {
+        img.src = imgUrl;
+        img.style.display = "block";
+    } else {
+        img.src = "";
+        img.style.display = "none";
+    }
+}
+
+/* =========================
+   FUSION LOGIC
+========================= */
+function mixViruses() {
+    let v1 = document.getElementById("virus1")?.value;
+    let v2 = document.getElementById("virus2")?.value;
+    let result = document.getElementById("result");
+
+    if (!result) return;
+
+    if (v1 === v2) {
+        result.innerText = "⚠️ Umbrella Protocol Violation: identical strains detected.";
+        return;
+    }
+
+    result.innerText =
+        "☣ T-Virus Hybridization Complete...\n" +
+        "Global infection rate: 100%\n" +
+        "Humanity extinction inevitable.\n\n" +
+        "— Umbrella Corporation Log #A-042";
+}
+
+/* =========================
+   SLIDER
+========================= */
+function showVirus(i) {
+    if (viruses.length === 0) return;
+
+    index = (i + viruses.length) % viruses.length;
+
+    const img = document.getElementById("viewerImg");
+    const title = document.getElementById("viewerTitle");
+
+    if (img) img.src = viruses[index].img;
+    if (title) title.textContent = viruses[index].title;
+}
+
+function changeVirus(step) {
+    index = (index + step + viruses.length) % viruses.length;
+    showVirus(index);
+}
+
+/* =========================
+   INIT (ВАЖНО: addEventListener)
+========================= */
+document.addEventListener("DOMContentLoaded", function () {
+
+    // LAB init
+    updatePreview(1);
+    updatePreview(2);
+
+    // build slider data
+    viruses = [];
+
+    document.querySelectorAll(".virus-item").forEach(el => {
+        const img = el.dataset.img;
+        const title = el.dataset.title;
+
+        if (img && img.trim() !== "") {
+            viruses.push({ img, title });
+        }
+    });
+
+    const viewerWrapper = document.getElementById("virusViewerWrapper");
+
+    if (viruses.length === 0) {
+        if (viewerWrapper) viewerWrapper.style.display = "none";
+        return;
+    }
+
+    showVirus(0);
+});
+</script>
+
+{% endblock %}

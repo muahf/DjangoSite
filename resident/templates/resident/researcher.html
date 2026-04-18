@@ -1,0 +1,121 @@
+{% extends 'resident/base.html' %}
+
+{% block title %}👨‍🔬 ИССЛЕДОВАТЕЛИ{% endblock %}
+
+{% block content %}
+
+{% if mode == "list" %}
+
+    <h1>Все исследователи</h1>
+
+    <div class="btn-group">
+        <a href="{% url 'resident:researcher_create' %}" class="btn btn-primary">
+            + Все исследователи
+        </a>
+    </div>
+
+    <div class="books-grid">
+        {% for researcher in researchers %}
+            <div class="book-card">
+
+                <div class="book-title">{{ researcher.name }}</div>
+                <div class="book-author">{{ researcher.email }}</div>
+
+                <div class="book-details">
+                    Патогены: {{ researcher.pathogens.count }}
+                </div>
+
+                <div class="btn-group">
+                    <a href="{% url 'resident:researcher_detail' researcher.pk %}" class="btn btn-secondary">
+                        Подробнее
+                    </a>
+                    <a href="{% url 'resident:researcher_update' researcher.pk %}" class="btn btn-success">
+                        Редактировать
+                    </a>
+                    <a href="{% url 'resident:researcher_delete' researcher.pk %}" class="btn btn-danger">
+                        Удалить
+                    </a>
+                </div>
+
+            </div>
+        {% empty %}
+            <div class="empty-state">Исследователи отсутствуют.</div>
+        {% endfor %}
+    </div>
+
+{% elif mode == "detail" %}
+
+    <div class="detail-card">
+
+        <div class="detail-header">
+            <h1>{{ researcher.name }}</h1>
+        </div>
+
+        <div class="detail-info">
+
+            <div class="detail-info-item">
+                <div class="detail-info-label">Email</div>
+                <div class="detail-info-value">{{ researcher.email }}</div>
+            </div>
+
+            <div class="detail-info-item">
+                <div class="detail-info-label">Обнаруженные патогены</div>
+                <div class="detail-info-value">
+                    {{ researcher.pathogens.count }}
+                </div>
+            </div>
+
+        </div>
+
+        <h2>Патогены этого исследователя:</h2>
+
+        <ul class="list-container">
+            {% for pathogen in researcher.pathogens.all %}
+                <li class="list-item">
+                    <a href="{% url 'resident:pathogen_detail' pathogen.pk %}" class="list-link">
+                        {{ pathogen.title }}
+                    </a>
+                </li>
+            {% empty %}
+                <li class="empty-state">У этого исследователя нет патогенов.</li>
+            {% endfor %}
+        </ul>
+
+    </div>
+
+{% elif mode == "form" %}
+
+    <div class="form-card">
+
+        <h2>Добавить исследователя</h2>
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <button type="submit" class="btn btn-primary">Сохранить</button>
+            <a href="{% url 'resident:researcher' %}" class="btn btn-secondary">Отмена</a>
+        </form>
+
+    </div>
+
+{% elif mode == "delete" %}
+
+    <div class="detail-card">
+
+        <h2>Удаление исследователя</h2>
+
+        <p>Вы уверены, что хотите удалить <strong>{{ researcher.name }}</strong>?</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Подтвердить</button>
+            <a href="{% url 'resident:researcher' %}" class="btn btn-secondary">Отмена</a>
+        </form>
+
+    </div>
+
+{% endif %}
+
+{% endblock %}
