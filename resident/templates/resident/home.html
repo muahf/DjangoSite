@@ -40,12 +40,21 @@
         <div class="list-container small-list">
             {% for pathogen in recent_pathogens %}
                 <div class="list-item">
+                    {% if user.is_staff %}
                     <a href="{% url 'resident:pathogen_detail' pathogen.pk %}" class="list-link">
                         <span class="list-title">{{ pathogen.title }}</span>
                         <span class="list-meta big-author">
                             {{ pathogen.author.name }}
                         </span>
                     </a>
+                    {% else %}
+                    <div class="list-link" style="cursor:default;">
+                        <span class="list-title">{{ pathogen.title }}</span>
+                        <span class="list-meta big-author">
+                            {{ pathogen.author.name }}
+                        </span>
+                    </div>
+                    {% endif %}
                 </div>
             {% empty %}
                 <div class="empty-state">Патогены отсутствуют</div>

@@ -17,16 +17,43 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+def _env_bool(name: str, default: bool = False) -> bool:
+    v = os.environ.get(name)
+    if v is None:
+        return default
+    return v.strip().lower() in ('1', 'true', 'yes', 'on')
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-mc@(2svrf90xn995^^(sz9#1)p2n6qs*ipmfjzc9eid&s*-a#f'
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-mc@(2svrf90xn995^^(sz9#1)p2n6qs*ipmfjzc9eid&s*-a#f',
+)
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = _env_bool('DJANGO_DEBUG', default=True)
 
-ALLOWED_HOSTS = []
+_default_hosts = ['127.0.0.1', 'localhost', '[::1]', 'testserver']
+_hosts_raw = os.environ.get('DJANGO_ALLOWED_HOSTS', '').strip()
+ALLOWED_HOSTS = (
+    [h.strip() for h in _hosts_raw.split(',') if h.strip()]
+    if _hosts_raw
+    else _default_hosts
+)
+
+_default_csrf = [
+    'http://127.0.0.1:8000',
+    'http://localhost:8000',
+    'http://[::1]:8000',
+]
+_csrf_raw = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').strip()
+CSRF_TRUSTED_ORIGINS = (
+    [o.strip() for o in _csrf_raw.split(',') if o.strip()]
+    if _csrf_raw
+    else _default_csrf
+)
+
+# В Docker без отдельного nginx: отдавать загруженные файлы через Django (только если осознанно).
+SERVE_UPLOADED_MEDIA = _env_bool('DJANGO_SERVE_MEDIA', default=False)
 
 
 # Application definition
@@ -43,6 +70,12 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+]
+
+if _env_bool('DJANGO_USE_WHITENOISE', default=False):
+    MIDDLEWARE.append('whitenoise.middleware.WhiteNoiseMiddleware')
+
+MIDDLEWARE += [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -50,6 +83,16 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+if _env_bool('DJANGO_USE_WHITENOISE', default=False):
+    STORAGES = {
+        'default': {
+            'BACKEND': 'django.core.files.storage.FileSystemStorage',
+        },
+        'staticfiles': {
+            'BACKEND': 'whitenoise.storage.CompressedStaticFilesStorage',
+        },
+    }
 
 ROOT_URLCONF = 'projectDjango.urls'
 
@@ -74,10 +117,11 @@ WSGI_APPLICATION = 'projectDjango.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+_sqlite_path = os.environ.get('DJANGO_DB_PATH', str(BASE_DIR / 'db.sqlite3'))
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': _sqlite_path,
     }
 }
 
@@ -119,9 +163,14 @@ USE_TZ = True
 # Статические файлы
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Медиа файлы
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

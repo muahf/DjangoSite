@@ -1,5 +1,69 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from .models import Pathogen, Researcher
+
+
+class UmbrellaAuthenticationForm(AuthenticationForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['username'].label = 'Логин'
+        self.fields['password'].label = 'Пароль'
+        for field in self.fields.values():
+            field.widget.attrs.setdefault('class', 'form-control')
+            if isinstance(field.widget, forms.PasswordInput):
+                field.widget.attrs.setdefault('autocomplete', 'current-password')
+        self.fields['username'].widget.attrs.setdefault('autocomplete', 'username')
+
+
+class RegistrationForm(forms.Form):
+    username = forms.CharField(
+        label='Логин',
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Идентификатор оператора',
+            'autocomplete': 'username',
+        }),
+    )
+    password = forms.CharField(
+        label='Пароль',
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': '••••••••',
+            'autocomplete': 'new-password',
+        }),
+    )
+    password_confirm = forms.CharField(
+        label='Повтор пароля',
+        strip=False,
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Повторите пароль',
+            'autocomplete': 'new-password',
+        }),
+    )
+
+    def clean_username(self):
+        name = self.cleaned_data['username'].strip()
+        if User.objects.filter(username__iexact=name).exists():
+            raise ValidationError('Этот логин уже занят.')
+        return name
+
+    def clean(self):
+        data = super().clean()
+        p1, p2 = data.get('password'), data.get('password_confirm')
+        if p1 and p2 and p1 != p2:
+            raise ValidationError('Пароли не совпадают.')
+        return data
+
+    def save(self):
+        return User.objects.create_user(
+            username=self.cleaned_data['username'],
+            password=self.cleaned_data['password'],
+        )
 
 
 class PathogenForm(forms.ModelForm):

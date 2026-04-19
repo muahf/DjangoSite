@@ -1,9 +1,15 @@
 from django.urls import path
+from django.views.generic.base import RedirectView
 from . import views
 
 app_name = 'resident'
 
 urlpatterns = [
+    path('accounts/register/', views.register, name='register'),
+    path('accounts/login/', views.login_view, name='login'),
+    path('accounts/logout/', views.logout_view, name='logout'),
+
+    path('home/', RedirectView.as_view(pattern_name='resident:home', permanent=False)),
     path('', views.home, name='home'),
 
     # Pathogens

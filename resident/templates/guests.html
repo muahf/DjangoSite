@@ -1,0 +1,94 @@
+{% extends 'resident/base.html' %}
+
+{% block title %}☣ Fusion Lab — гостевой доступ{% endblock %}
+
+{% block content %}
+<div class="form-warning" style="margin-bottom:1.5rem;">
+    Гостевой режим: доступно только смешивание штаммов. Полный портал — после входа.
+</div>
+
+<h1>🧪 Umbrella Virus Fusion Lab</h1>
+
+<div class="lab-section">
+    <div class="virus-lab">
+        <div class="lab-panel">
+            <div class="virus-selectors">
+                <div class="virus-box">
+                    <select id="virus1" onchange="updatePreview(1)">
+                        {% for pathogen in recent_pathogens %}
+                        <option value="{{ pathogen.title }}" data-img="{% if pathogen.image %}{{ pathogen.image.url }}{% endif %}">
+                            {{ pathogen.title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <img id="img1" class="virus-preview" alt="">
+                </div>
+                <div class="virus-box">
+                    <select id="virus2" onchange="updatePreview(2)">
+                        {% for pathogen in recent_pathogens %}
+                        <option value="{{ pathogen.title }}" data-img="{% if pathogen.image %}{{ pathogen.image.url }}{% endif %}">
+                            {{ pathogen.title }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <img id="img2" class="virus-preview" alt="">
+                </div>
+            </div>
+            <div class="lab-controls">
+                <button type="button" onclick="mixViruses()" class="btn btn-danger">
+                    ☣ INITIATE FUSION
+                </button>
+            </div>
+            <div id="result" class="lab-result"></div>
+        </div>
+    </div>
+</div>
+
+{% if not recent_pathogens %}
+<div class="empty-state" style="margin-top:1rem;">
+    В базе пока нет патогенов для смешивания. Загрузите данные через персонал с допуском.
+</div>
+{% endif %}
+
+<script>
+function updatePreview(num) {
+    const select = document.getElementById("virus" + num);
+    const img = document.getElementById("img" + num);
+    if (!select || !img) return;
+    const selected = select.options[select.selectedIndex];
+    const imgUrl = selected?.getAttribute("data-img");
+    if (imgUrl && imgUrl.trim() !== "") {
+        img.src = imgUrl;
+        img.style.display = "block";
+    } else {
+        img.src = "";
+        img.style.display = "none";
+    }
+}
+
+function mixViruses() {
+    const v1 = document.getElementById("virus1")?.value;
+    const v2 = document.getElementById("virus2")?.value;
+    const result = document.getElementById("result");
+    if (!result) return;
+    if (!v1 || !v2) {
+        result.innerText = "⚠️ Нет доступных штаммов для протокола.";
+        return;
+    }
+    if (v1 === v2) {
+        result.innerText = "⚠️ Umbrella Protocol Violation: identical strains detected.";
+        return;
+    }
+    result.innerText =
+        "☣ T-Virus Hybridization Complete...\n" +
+        "Global infection rate: 100%\n" +
+        "Humanity extinction inevitable.\n\n" +
+        "— Umbrella Corporation Log #A-042";
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    updatePreview(1);
+    updatePreview(2);
+});
+</script>
+{% endblock %}

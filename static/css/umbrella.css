@@ -154,6 +154,20 @@ body::after {
     flex-wrap: wrap;
 }
 
+.navbar-actions {
+    margin-left: auto;
+}
+
+.nav-link-primary {
+    color: var(--umbrella-red) !important;
+    border-color: var(--umbrella-red) !important;
+}
+
+.nav-link-primary:hover {
+    color: var(--umbrella-bright-red) !important;
+    background: rgba(139, 0, 0, 0.08);
+}
+
 .nav-link {
     color: var(--umbrella-text-dim);
     text-decoration: none;
@@ -1032,6 +1046,16 @@ body::after {
     .navbar .container {
         flex-direction: column;
         gap: 15px;
+        align-items: stretch;
+    }
+
+    .navbar-actions {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .navbar-actions .navbar-nav {
+        justify-content: flex-end;
     }
     
     .navbar-nav {

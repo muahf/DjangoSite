@@ -15,18 +15,29 @@
             🧬 UMBRELLA LAB
         </a>
 
-        <nav>
+        <nav class="navbar-actions" aria-label="Учётная запись">
             <ul class="navbar-nav">
+                {% if user.is_staff %}
                 <li>
                     <a class="nav-link" href="{% url 'resident:pathogen' %}">
-                        🦠 Патогены  
+                        🦠 Патогены
                     </a>
                 </li>
                 <li>
                     <a class="nav-link" href="{% url 'resident:researcher' %}">
-                        👨‍🔬 Исследователи  
+                        👨‍🔬 Исследователи
                     </a>
                 </li>
+                {% endif %}
+                {% if user.is_authenticated %}
+                <li>
+                    <a class="nav-link" href="{% url 'resident:logout' %}">Выход</a>
+                </li>
+                {% else %}
+                <li>
+                    <a class="nav-link nav-link-primary" href="{% url 'resident:login' %}">Войти</a>
+                </li>
+                {% endif %}
             </ul>
         </nav>
     </div>
@@ -40,6 +51,13 @@
 
 <!-- MAIN CONTENT -->
 <main class="container main-content">
+    {% if messages %}
+    <div class="form-warning" style="margin-bottom:1.25rem;">
+        {% for message in messages %}
+            <div>{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
     {% block content %}
     {% endblock %}
 </main>

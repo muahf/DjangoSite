@@ -1,0 +1,52 @@
+{% extends 'resident/base.html' %}
+
+{% block title %}☣ Вход{% endblock %}
+
+{% block content %}
+<div class="form-card">
+    <div class="form-header">
+        <h3>UMBRELLA — АВТОРИЗАЦИЯ</h3>
+        <p style="font-size:0.75rem;letter-spacing:2px;text-transform:uppercase;color:var(--umbrella-text-dim);">
+            Введите учётные данные
+        </p>
+    </div>
+
+    <div class="form-warning">
+        Система ведёт журнал входа. Только для уполномоченного персонала.
+    </div>
+
+    {% if form.non_field_errors %}
+        <div class="form-errors" style="margin-bottom:1rem;">
+            {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" action="{% url 'resident:login' %}">
+        {% csrf_token %}
+        {% if request.GET.next %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+        {% endif %}
+
+        <div class="form-group">
+            <label class="form-label" for="id_username">{{ form.username.label }}</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+                <div class="form-errors">{% for e in form.username.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="id_password">{{ form.password.label }}</label>
+            {{ form.password }}
+            {% if form.password.errors %}
+                <div class="form-errors">{% for e in form.password.errors %}{{ e }}{% endfor %}</div>
+            {% endif %}
+        </div>
+
+        <div class="btn-group" style="margin-top:1.5rem;">
+            <button type="submit" class="btn btn-danger">ВОЙТИ</button>
+            <a class="btn btn-secondary" href="{% url 'resident:register' %}">Регистрация</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
