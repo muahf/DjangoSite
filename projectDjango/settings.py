@@ -44,6 +44,8 @@ _default_csrf = [
     'http://127.0.0.1:8000',
     'http://localhost:8000',
     'http://[::1]:8000',
+    'http://localhost',
+    'http://127.0.0.1',
 ]
 _csrf_raw = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').strip()
 CSRF_TRUSTED_ORIGINS = (
@@ -54,6 +56,9 @@ CSRF_TRUSTED_ORIGINS = (
 
 # В Docker без отдельного nginx: отдавать загруженные файлы через Django (только если осознанно).
 SERVE_UPLOADED_MEDIA = _env_bool('DJANGO_SERVE_MEDIA', default=False)
+
+# За nginx / другим reverse proxy (Host / CSRF).
+USE_X_FORWARDED_HOST = _env_bool('DJANGO_USE_X_FORWARDED', default=False)
 
 
 # Application definition
@@ -160,8 +165,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-# Статические файлы
-STATIC_URL = 'static/'
+# Статические файлы (в Docker за nginx удобно DJANGO_STATIC_URL=/static/)
+STATIC_URL = os.environ.get('DJANGO_STATIC_URL', 'static/') or 'static/'
+if not str(STATIC_URL).endswith('/'):
+    STATIC_URL = f'{STATIC_URL}/'
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
