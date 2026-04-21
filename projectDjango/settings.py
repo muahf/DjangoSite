@@ -32,13 +32,14 @@ SECRET_KEY = os.environ.get(
 
 DEBUG = _env_bool('DJANGO_DEBUG', default=True)
 
-_default_hosts = ['127.0.0.1', 'localhost', '[::1]', 'testserver']
+_default_hosts = ['127.0.0.1', 'localhost', '[::1]', 'testserver', 'crusader-booting-uncheck.ngrok-free.dev']
 _hosts_raw = os.environ.get('DJANGO_ALLOWED_HOSTS', '').strip()
 ALLOWED_HOSTS = (
     [h.strip() for h in _hosts_raw.split(',') if h.strip()]
     if _hosts_raw
     else _default_hosts
 )
+
 
 _default_csrf = [
     'http://127.0.0.1:8000',
@@ -47,18 +48,18 @@ _default_csrf = [
     'http://localhost',
     'http://127.0.0.1',
 ]
+
 _csrf_raw = os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').strip()
 CSRF_TRUSTED_ORIGINS = (
     [o.strip() for o in _csrf_raw.split(',') if o.strip()]
     if _csrf_raw
     else _default_csrf
 )
-
 # В Docker без отдельного nginx: отдавать загруженные файлы через Django (только если осознанно).
 SERVE_UPLOADED_MEDIA = _env_bool('DJANGO_SERVE_MEDIA', default=False)
 
 # За nginx / другим reverse proxy (Host / CSRF).
-USE_X_FORWARDED_HOST = _env_bool('DJANGO_USE_X_FORWARDED', default=False)
+USE_X_FORWARDED_HOST = _env_bool('DJANGO_USE_X_FORWARDED', default=True)
 
 
 # Application definition
@@ -181,3 +182,4 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
