@@ -1,11 +1,70 @@
 # DjangoSite (projectDjango)
+# ProjectDjango (Umbrella Lab)
 
-Кратко: как поднять локально через `runserver`, как через Docker, и как открыть наружу через **ngrok**, когда без **VPN** туннель не поднимается или недоступен.
+Небольшое Django-приложение для работы с:
+- исследователями (`Researcher`)
+- патогенами (`Pathogen`)
 
-## Требования
+Интерфейс: кастомный CSS в стиле Umbrella (`static/css/umbrella.css`), CRUD-страницы и авторизация.
 
-- **Python 3.12+** (локально)
-- **Docker Desktop** (или Docker Engine + Compose v2) — для контейнеров
+## Стек
+
+- Python 3.13+
+- Django 6
+- SQLite
+- Pillow (изображения)
+- Gunicorn + Nginx (для Docker-режима)
+
+## Быстрый запуск локально (Windows / PowerShell)
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+```
+
+После запуска:
+- приложение: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+- админка: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
+
+Основные переменные:
+- `DJANGO_SECRET_KEY` - секретный ключ Django
+- `DJANGO_DEBUG` - `1`/`0` для debug-режима
+- `DJANGO_ALLOWED_HOSTS` - список хостов через запятую
+- `DJANGO_CSRF_TRUSTED_ORIGINS` - trusted origins для CSRF
+- `DJANGO_DB_PATH` - путь к sqlite базе (по умолчанию `db.sqlite3`)
+
+## Запуск через Docker
+
+```bash
+docker compose up --build
+```
+
+Сервисы:
+- `web` (Django + gunicorn, порт внутри контейнера `8080`)
+- `nginx` (публикует `80:80`)
+
+Приложение будет доступно на [http://localhost/](http://localhost/).
+
+## Основные маршруты
+
+- `/` - главная
+- `/pathogens/` - список патогенов
+- `/researchers/` - список исследователей
+- `/accounts/login/` - вход
+- `/accounts/register/` - регистрация
+- `/admin/` - Django admin
+
+## Структура проекта
+
+- `projectDjango/` - настройки и корневые URL
+- `resident/` - приложение (models/views/forms/urls/templates)
+- `static/` - стили и статические ресурсы
+- `media/` - загружаемые изображения
+- `nginx/` - конфиг Nginx для Docker
 
 ---
 
